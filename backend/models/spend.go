@@ -36,7 +36,7 @@ func (u *User) update(n User) {
 }
 
 func (db *DB) GetAllSpends() ([]*Spend, error) {
-	return make([]*Spend, 10), nil
+	return make([]*Spend, 0), nil
 }
 
 func (db *DB) GetSpendById(id int) (*Spend, error) {

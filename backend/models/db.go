@@ -41,6 +41,7 @@ func InitDB() (*DB, error) {
 }
 
 func newDB(s DBSettings) (*DB, error) {
+
 	conStr := s.user + ":" + s.password + "@/" + s.dbName
 	fmt.Println(conStr)
 	db, err := sql.Open(s.dbType, conStr)
