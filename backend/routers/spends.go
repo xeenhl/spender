@@ -45,12 +45,6 @@ func (env *Env) UpdateSingleSpendHandler(rw http.ResponseWriter, r *http.Request
 		return
 	}
 
-	spends, err := env.DB.GetAllSpends()
-	if err != nil {
-		rw.WriteHeader(http.StatusBadRequest)
-		rw.Write([]byte(err.Error()))
-	}
-
 	var newData models.Spend
 	decodeError := json.NewDecoder(r.Body).Decode(&newData)
 
@@ -59,13 +53,12 @@ func (env *Env) UpdateSingleSpendHandler(rw http.ResponseWriter, r *http.Request
 		return
 	}
 
-	for _, s := range spends {
-		if s.ID == id {
-			s.Update(newData)
-			json.NewEncoder(rw).Encode(s)
-			return
-		}
+	spend, err := env.DB.UpdateSpend(id, newData)
+
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		rw.Write([]byte(err.Error()))
 	}
 
-	rw.Write([]byte("Not Found!"))
+	json.NewEncoder(rw).Encode(spend)
 }
