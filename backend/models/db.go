@@ -42,16 +42,18 @@ func InitDB() (*DB, error) {
 
 func newDB(s DBSettings) (*DB, error) {
 
-	conStr := s.user + ":" + s.password + "@/" + s.dbName
-	db, err := sql.Open(s.dbType, conStr)
+	//conStr := s.user + ":" + s.password + "@/" + s.dbName
+	//db, err := sql.Open(s.dbType, conStr)
+	//
+	//if err != nil {
+	//	return nil, err
+	//}
+	//
+	//if err := db.Ping(); err != nil {
+	//	return nil, err
+	//}
+	//
+	//return &DB{db}, nil
 
-	if err != nil {
-		return nil, err
-	}
-
-	if err := db.Ping(); err != nil {
-		return nil, err
-	}
-
-	return &DB{db}, nil
+	return nil, nil
 }

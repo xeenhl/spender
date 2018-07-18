@@ -17,6 +17,7 @@ func InitRouters(e *env.Env) *mux.Router {
 	environment = &Env{*e}
 	router := mux.NewRouter()
 	router = SetSpendRoutes(router)
+	router = SetLoginRoutes(router)
 	return router
 }
 
@@ -29,6 +30,16 @@ func SetSpendRoutes(router *mux.Router) *mux.Router {
 		negroni.New(negroni.HandlerFunc(environment.GetSingleSpendHandler))).Methods("GET")
 	router.Handle("/spends/{id}",
 		negroni.New(negroni.HandlerFunc(environment.UpdateSingleSpendHandler))).Methods("POST")
+
+	return router
+}
+
+
+func SetLoginRoutes(router *mux.Router) *mux.Router {
+	router.Handle("/login",
+		negroni.New(
+			negroni.HandlerFunc(Login),
+			negroni.HandlerFunc(authentication.SignWithNewToken))).Methods("POST")
 
 	return router
 }

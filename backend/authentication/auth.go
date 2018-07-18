@@ -7,9 +7,15 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"github.com/xeenhl/spender/backend/models"
+	appCtx "github.com/xeenhl/spender/backend/context"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/dgrijalva/jwt-go/request"
+	"errors"
+	"bufio"
+	"encoding/pem"
+	"crypto/x509"
 )
 
 type JWTAuthenticationSettings struct {
@@ -17,40 +23,14 @@ type JWTAuthenticationSettings struct {
 	PublicKey  *rsa.PublicKey
 }
 
-type UserIdKey string
-
 const (
 	tokenDuration = 72
 	expireOffset  = 3600
-	privateKey    = "./authentication/keys/private_key"
-	publicKey     = "./authentication/keys/public_key.pub"
-	//Key to get user id populated from token in AuhtWithToken
-	UserID = UserIdKey("userId")
+	privateKey    = "./backend/authentication/keys/private_key"
+	publicKey     = "./backend/authentication/keys/public_key.pub"
 )
 
 var authenticationSettings *JWTAuthenticationSettings
-
-func AuhtWithToken(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-	auth := initJWTAuthenticationSettings()
-
-	token, err := request.ParseFromRequest(r, request.OAuth2Extractor, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
-			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
-		}
-		return auth.PublicKey, nil
-
-	})
-
-	if err == nil {
-		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-			ctx := r.Context()
-			ctx = context.WithValue(ctx, UserID, claims["userId"])
-			next(rw, r.WithContext(ctx))
-		}
-	}
-
-	rw.WriteHeader(http.StatusUnauthorized)
-}
 
 func initJWTAuthenticationSettings() *JWTAuthenticationSettings {
 	if authenticationSettings == nil {
@@ -61,6 +41,59 @@ func initJWTAuthenticationSettings() *JWTAuthenticationSettings {
 	}
 
 	return authenticationSettings
+}
+
+func AuhtWithToken(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+	auth := initJWTAuthenticationSettings()
+
+	token, err := request.ParseFromRequest(r, request.AuthorizationHeaderExtractor, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodRSAPSS); !ok {
+			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+		}
+		return auth.PublicKey, nil
+
+	})
+
+	if err != nil {
+		rw.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		ctx := r.Context()
+		ctx = context.WithValue(ctx, appCtx.UserID, claims["userId"])
+		next(rw, r.WithContext(ctx))
+	}
+
+
+}
+
+func SignWithNewToken(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+	auth := initJWTAuthenticationSettings()
+	login, err := getLogin(r.Context().Value(appCtx.LoginData))
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		rw.Write([]byte("no login data provided"))
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodPS512, jwt.MapClaims{
+		"userId" : login.ID,
+	})
+
+	tokenString, err := token.SignedString(auth.privateKey)
+
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		rw.Write([]byte("unprocessable login data"))
+		return
+	}
+
+	http.SetCookie(rw, &http.Cookie{
+		Name: "token",
+		Value: tokenString,
+	})
+
+	next(rw, r)
 }
 
 func getPrivateKey() *rsa.PrivateKey {
@@ -78,9 +111,23 @@ func getPrivateKey() *rsa.PrivateKey {
 		panic(err)
 	}
 
-	fmt.Println(prKey)
+	keyStat, _ := prKey.Stat()
 
-	return nil
+	var s int64 = keyStat.Size()
+	pembytes := make([]byte, s)
+
+	buffer := bufio.NewReader(prKey)
+	buffer.Read(pembytes)
+
+	data, _ := pem.Decode([]byte(pembytes))
+
+	pubKeyImported, err := x509.ParsePKCS1PrivateKey(data.Bytes)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return pubKeyImported
 }
 
 func getPublicKey() *rsa.PublicKey {
@@ -98,7 +145,37 @@ func getPublicKey() *rsa.PublicKey {
 		panic(err)
 	}
 
-	fmt.Println(pubKey)
+	keyStat, _ := pubKey.Stat()
 
-	return nil
+	s := keyStat.Size()
+	pembytes := make([]byte, s)
+
+	buffer := bufio.NewReader(pubKey)
+	buffer.Read(pembytes)
+
+	data, _ := pem.Decode([]byte(pembytes))
+
+	pubKeyImported, err := x509.ParsePKIXPublicKey(data.Bytes)
+
+	if err != nil {
+		panic(err)
+	}
+
+	rsaPub, ok := pubKeyImported.(*rsa.PublicKey)
+
+	if !ok {
+		panic("cant validate public key")
+	}
+
+	return rsaPub
+}
+
+func getLogin(l interface{}) (*models.User, error){
+	switch login := l.(type) {
+	case models.User:
+		login = models.User(login)
+		return &login, nil
+	default:
+		return nil, errors.New("no login data provided")
+	}
 }

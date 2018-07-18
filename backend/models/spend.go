@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/xeenhl/spender/backend/authentication"
+	appCtx "github.com/xeenhl/spender/backend/context"
 )
 
 type Amount struct {
@@ -43,13 +43,14 @@ func (u *User) update(n User) {
 func (db *DB) GetAllSpends(ctx context.Context) ([]*Spend, error) {
 	spends := make([]*Spend, 0)
 
-	userID, err := getUserID(ctx.Value(authentication.UserID))
+	x := ctx.Value(appCtx.UserID)
+	userID, err := getUserID(x)
 
 	if err != nil {
 		return nil, err
 	}
 
-	query := "SELECT * FROM Spends WHERE UserID = " + userID
+	query := "SELECT * FROM Spends WHERE UserID = " + string(userID)
 	rows, err := db.Query(query)
 	defer rows.Close()
 
@@ -96,13 +97,14 @@ func (db *DB) UpdateSpend(id int, newData Spend, ctx context.Context) (*Spend, e
 	return &Spend{}, errors.New("No spend found by ID for Update")
 }
 
-func getUserID(i interface{}) (string, error) {
+func getUserID(i interface{}) (int, error) {
 
 	switch v := i.(type) {
-	case string:
-		return v, nil
+	//jwt-go lib parse int claims from token as float64 by default
+	case float64:
+		return int(v), nil
 	default:
-		return "", errors.New("user id mast be string value in context")
+		return -1, errors.New("user id mast be string value in context")
 	}
 
 }
