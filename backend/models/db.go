@@ -1,16 +1,16 @@
 package models
 
 import (
+	"context"
 	"database/sql"
-	"fmt"
 
 	_ "github.com/go-sql-driver/mysql"
 )
 
 type SpendDatastore interface {
-	GetAllSpends() ([]*Spend, error)
-	GetSpendById(id int) (*Spend, error)
-	UpdateSpend(id int, newData Spend) (*Spend, error)
+	GetAllSpends(ctx context.Context) ([]*Spend, error)
+	GetSpendById(id int, ctx context.Context) (*Spend, error)
+	UpdateSpend(id int, newData Spend, ctx context.Context) (*Spend, error)
 }
 
 type Datastore interface {
@@ -43,7 +43,6 @@ func InitDB() (*DB, error) {
 func newDB(s DBSettings) (*DB, error) {
 
 	conStr := s.user + ":" + s.password + "@/" + s.dbName
-	fmt.Println(conStr)
 	db, err := sql.Open(s.dbType, conStr)
 
 	if err != nil {

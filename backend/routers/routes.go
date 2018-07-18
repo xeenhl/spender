@@ -3,6 +3,7 @@ package routers
 import (
 	"github.com/gorilla/mux"
 	"github.com/urfave/negroni"
+	"github.com/xeenhl/spender/backend/authentication"
 	"github.com/xeenhl/spender/backend/env"
 )
 
@@ -21,7 +22,9 @@ func InitRouters(e *env.Env) *mux.Router {
 
 func SetSpendRoutes(router *mux.Router) *mux.Router {
 	router.Handle("/spends",
-		negroni.New(negroni.HandlerFunc(environment.GetSpendsHandler))).Methods("GET")
+		negroni.New(
+			negroni.HandlerFunc(authentication.AuhtWithToken),
+			negroni.HandlerFunc(environment.GetSpendsHandler))).Methods("GET")
 	router.Handle("/spends/{id}",
 		negroni.New(negroni.HandlerFunc(environment.GetSingleSpendHandler))).Methods("GET")
 	router.Handle("/spends/{id}",

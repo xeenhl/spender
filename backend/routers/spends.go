@@ -10,7 +10,7 @@ import (
 )
 
 func (env *Env) GetSpendsHandler(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-	spends, err := env.DB.GetAllSpends()
+	spends, err := env.DB.GetAllSpends(r.Context())
 	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		rw.Write([]byte(err.Error()))
@@ -28,7 +28,7 @@ func (env *Env) GetSingleSpendHandler(rw http.ResponseWriter, r *http.Request, n
 		return
 	}
 
-	if spend, err := env.DB.GetSpendById(id); err != nil {
+	if spend, err := env.DB.GetSpendById(id, r.Context()); err != nil {
 		rw.WriteHeader(http.StatusNotFound)
 		rw.Write([]byte("Not Found!"))
 	} else {
@@ -53,7 +53,7 @@ func (env *Env) UpdateSingleSpendHandler(rw http.ResponseWriter, r *http.Request
 		return
 	}
 
-	spend, err := env.DB.UpdateSpend(id, newData)
+	spend, err := env.DB.UpdateSpend(id, newData, r.Context())
 
 	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)

@@ -1,6 +1,11 @@
 package models
 
-import "errors"
+import (
+	"context"
+	"errors"
+
+	"github.com/xeenhl/spender/backend/authentication"
+)
 
 type Amount struct {
 	Amount   float32
@@ -35,11 +40,40 @@ func (u *User) update(n User) {
 	u.ID = n.ID
 }
 
-func (db *DB) GetAllSpends() ([]*Spend, error) {
-	return make([]*Spend, 0), nil
+func (db *DB) GetAllSpends(ctx context.Context) ([]*Spend, error) {
+	spends := make([]*Spend, 0)
+
+	userID, err := getUserID(ctx.Value(authentication.UserID))
+
+	if err != nil {
+		return nil, err
+	}
+
+	query := "SELECT * FROM Spends WHERE UserID = " + userID
+	rows, err := db.Query(query)
+	defer rows.Close()
+
+	if err != nil {
+		return nil, err
+	}
+
+	if rows.Next() {
+		s := new(Spend)
+
+		err := rows.Scan(&s.ID, &s.Amount.Amount, &s.Amount.Currency, &s.User.ID)
+
+		if err != nil {
+			return nil, err
+		}
+
+		spends = append(spends, s)
+	}
+
+	return spends, nil
+
 }
 
-func (db *DB) GetSpendById(id int) (*Spend, error) {
+func (db *DB) GetSpendById(id int, ctx context.Context) (*Spend, error) {
 
 	// for _, s := range spends {
 	// 	if s.ID == id {
@@ -50,7 +84,7 @@ func (db *DB) GetSpendById(id int) (*Spend, error) {
 	return &Spend{}, errors.New("No spend found by ID for Update")
 }
 
-func (db *DB) UpdateSpend(id int, newData Spend) (*Spend, error) {
+func (db *DB) UpdateSpend(id int, newData Spend, ctx context.Context) (*Spend, error) {
 
 	// for _, s := range spends {
 	// 	if s.ID == id {
@@ -60,4 +94,15 @@ func (db *DB) UpdateSpend(id int, newData Spend) (*Spend, error) {
 	// }
 
 	return &Spend{}, errors.New("No spend found by ID for Update")
+}
+
+func getUserID(i interface{}) (string, error) {
+
+	switch v := i.(type) {
+	case string:
+		return v, nil
+	default:
+		return "", errors.New("user id mast be string value in context")
+	}
+
 }
