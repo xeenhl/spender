@@ -1,0 +1,132 @@
+{
+	"info": {
+		"_postman_id": "4e1b988f-f04f-4514-8a03-4f339e927693",
+		"name": "spendLogger",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Login",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\tID: 101\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8081/spends",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"spends"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "AddSpend",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"User\":{\"ID\":10},\"Amount\":{\"Amount\":142.11,\"Currency\":\"GBP\"}}"
+				},
+				"url": {
+					"raw": "http://localhost:8081/spends",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"spends"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GetSpendsList",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:8080/spend/list",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"spend",
+						"list"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GetSpendById",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{AuthToken}}"
+					}
+				],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:8081/spends/10",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"spends",
+						"10"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GetAllSpends",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{AuthToken}}"
+					}
+				],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:8081/spends",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"spends"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
