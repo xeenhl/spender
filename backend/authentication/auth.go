@@ -7,15 +7,17 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"github.com/xeenhl/spender/backend/models"
+
 	appCtx "github.com/xeenhl/spender/backend/context"
+	"github.com/xeenhl/spender/backend/models"
+
+	"bufio"
+	"crypto/x509"
+	"encoding/pem"
+	"errors"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/dgrijalva/jwt-go/request"
-	"errors"
-	"bufio"
-	"encoding/pem"
-	"crypto/x509"
 )
 
 type JWTAuthenticationSettings struct {
@@ -26,8 +28,8 @@ type JWTAuthenticationSettings struct {
 const (
 	tokenDuration = 72
 	expireOffset  = 3600
-	privateKey    = "./backend/authentication/keys/private_key"
-	publicKey     = "./backend/authentication/keys/public_key.pub"
+	privateKey    = "./authentication/keys/private_key"
+	publicKey     = "./authentication/keys/public_key.pub"
 )
 
 var authenticationSettings *JWTAuthenticationSettings
@@ -65,7 +67,6 @@ func AuhtWithToken(rw http.ResponseWriter, r *http.Request, next http.HandlerFun
 		next(rw, r.WithContext(ctx))
 	}
 
-
 }
 
 func SignWithNewToken(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
@@ -77,7 +78,7 @@ func SignWithNewToken(rw http.ResponseWriter, r *http.Request, next http.Handler
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodPS512, jwt.MapClaims{
-		"userId" : login.ID,
+		"userId": login.ID,
 	})
 
 	tokenString, err := token.SignedString(auth.privateKey)
@@ -89,7 +90,7 @@ func SignWithNewToken(rw http.ResponseWriter, r *http.Request, next http.Handler
 	}
 
 	http.SetCookie(rw, &http.Cookie{
-		Name: "token",
+		Name:  "token",
 		Value: tokenString,
 	})
 
@@ -170,7 +171,7 @@ func getPublicKey() *rsa.PublicKey {
 	return rsaPub
 }
 
-func getLogin(l interface{}) (*models.User, error){
+func getLogin(l interface{}) (*models.User, error) {
 	switch login := l.(type) {
 	case models.User:
 		login = models.User(login)

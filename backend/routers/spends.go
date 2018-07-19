@@ -36,14 +36,7 @@ func (env *Env) GetSingleSpendHandler(rw http.ResponseWriter, r *http.Request, n
 	}
 }
 
-func (env *Env) UpdateSingleSpendHandler(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-	props := mux.Vars(r)
-	id, err := strconv.Atoi(props["id"])
-	if props == nil || err != nil {
-		rw.WriteHeader(http.StatusBadRequest)
-		rw.Write([]byte("Not Found!"))
-		return
-	}
+func (env *Env) AddSingleSpendHandler(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 
 	var newData models.Spend
 	decodeError := json.NewDecoder(r.Body).Decode(&newData)
@@ -53,7 +46,7 @@ func (env *Env) UpdateSingleSpendHandler(rw http.ResponseWriter, r *http.Request
 		return
 	}
 
-	spend, err := env.DB.UpdateSpend(id, newData, r.Context())
+	spend, err := env.DB.AddSpend(newData, r.Context())
 
 	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)

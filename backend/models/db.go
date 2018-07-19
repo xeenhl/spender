@@ -10,7 +10,7 @@ import (
 type SpendDatastore interface {
 	GetAllSpends(ctx context.Context) ([]*Spend, error)
 	GetSpendById(id int, ctx context.Context) (*Spend, error)
-	UpdateSpend(id int, newData Spend, ctx context.Context) (*Spend, error)
+	AddSpend(newData Spend, ctx context.Context) (*Spend, error)
 }
 
 type Datastore interface {
@@ -42,18 +42,16 @@ func InitDB() (*DB, error) {
 
 func newDB(s DBSettings) (*DB, error) {
 
-	//conStr := s.user + ":" + s.password + "@/" + s.dbName
-	//db, err := sql.Open(s.dbType, conStr)
-	//
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	//if err := db.Ping(); err != nil {
-	//	return nil, err
-	//}
-	//
-	//return &DB{db}, nil
+	conStr := s.user + ":" + s.password + "@/" + s.dbName
+	db, err := sql.Open(s.dbType, conStr)
 
-	return nil, nil
+	if err != nil {
+		return nil, err
+	}
+
+	if err := db.Ping(); err != nil {
+		return nil, err
+	}
+
+	return &DB{db}, nil
 }
