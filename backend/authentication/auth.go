@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 
 	appCtx "github.com/xeenhl/spender/backend/context"
 	"github.com/xeenhl/spender/backend/models"
@@ -25,8 +26,13 @@ type JWTAuthenticationSettings struct {
 	PublicKey  *rsa.PublicKey
 }
 
+type Login struct {
+	Email    string
+	Password string
+}
+
 const (
-	tokenDuration = 72
+	tokenDuration = 1
 	expireOffset  = 3600
 	privateKey    = "./authentication/keys/private_key"
 	publicKey     = "./authentication/keys/public_key.pub"
@@ -78,7 +84,9 @@ func SignWithNewToken(rw http.ResponseWriter, r *http.Request, next http.Handler
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodPS512, jwt.MapClaims{
-		"userId": login.ID,
+		"sub": login.ID,
+		"iat": time.Now().Unix(),
+		"exp": time.Now().Add(time.Hour * time.Duration(tokenDuration)).Unix(),
 	})
 
 	tokenString, err := token.SignedString(auth.privateKey)
