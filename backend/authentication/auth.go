@@ -31,6 +31,11 @@ type Login struct {
 	Password string
 }
 
+type Signin struct {
+	Email    string
+	Password string
+}
+
 const (
 	tokenDuration = 1
 	expireOffset  = 3600

@@ -43,6 +43,10 @@ func SetLoginRoutes(router *mux.Router) *mux.Router {
 		negroni.New(
 			negroni.HandlerFunc(environment.Login),
 			negroni.HandlerFunc(authentication.SignWithNewToken))).Methods("POST")
+	router.Handle("/sigin",
+		negroni.New(
+			negroni.HandlerFunc(environment.SignIn),
+			negroni.HandlerFunc(authentication.SignWithNewToken))).Methods("POST")
 
 	return router
 }
