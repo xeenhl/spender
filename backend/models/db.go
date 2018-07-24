@@ -11,6 +11,7 @@ type SpendDatastore interface {
 	GetAllSpends(ctx context.Context) ([]*Spend, error)
 	GetSpendById(id int, ctx context.Context) (*Spend, error)
 	AddSpend(newData Spend, ctx context.Context) (*Spend, error)
+	GetUserByEmail(email string) (*User, error)
 }
 
 type Datastore interface {

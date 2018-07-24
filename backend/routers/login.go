@@ -6,24 +6,23 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/xeenhl/spender/backend/authentication"
 	appCtx "github.com/xeenhl/spender/backend/context"
 	"github.com/xeenhl/spender/backend/models"
 )
 
 func (env *Env) Login(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 
-	var userLogin authentication.Login
-	decodeError := json.NewDecoder(r.Body).Decode(&userLogin)
+	var creds models.Credentials
+	decodeError := json.NewDecoder(r.Body).Decode(&creds)
 
 	if decodeError != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	pass := base64.StdEncoding.EncodeToString([]byte(userLogin.Password))
-	userLogin.Password = pass
+	pass := base64.StdEncoding.EncodeToString([]byte(creds.Password))
+	creds.Password = pass
 
-	user, verified := allowed(&userLogin, env)
+	user, verified := allowed(&creds, env)
 	if !verified {
 		rw.WriteHeader(http.StatusUnauthorized)
 		rw.Write([]byte("Not registered user"))
@@ -31,28 +30,32 @@ func (env *Env) Login(rw http.ResponseWriter, r *http.Request, next http.Handler
 	}
 
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, appCtx.LoginData, *user)
+	ctx = context.WithValue(ctx, appCtx.Credentils, *user)
 
 	next(rw, r.WithContext(ctx))
 
 }
 
-func allowed(login *authentication.Login, env *Env) (*models.User, bool) {
+func allowed(login *models.Credentials, env *Env) (*models.User, bool) {
 
-	_, err := env.getLoginData(login.Email)
+	userData, err := env.getLoginData(login.Email)
 
 	if err != nil {
 		return nil, false
 	}
 
-	expectedP := base64.StdEncoding.EncodeToString([]byte("qwerty"))
 
-	if login.Email == "test@test.com" && login.Password == expectedP {
-		return &models.User{ID: 10}, true
+
+	if login.Email == userData.Email && login.Password == userData.Password {
+		return userData, true
 	}
 	return nil, false
 }
 
-func (enc *Env) getLoginData(email string) (*authentication.Login, error) {
-	return nil, nil
+func (env *Env) getLoginData(email string) (*models.User, error) {
+	usr, err := env.DB.GetUserByEmail(email)
+	if err != nil {
+		return  nil, err
+	}
+	return usr, nil
 }

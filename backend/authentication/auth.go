@@ -26,16 +26,6 @@ type JWTAuthenticationSettings struct {
 	PublicKey  *rsa.PublicKey
 }
 
-type Login struct {
-	Email    string
-	Password string
-}
-
-type Signin struct {
-	Email    string
-	Password string
-}
-
 const (
 	tokenDuration = 1
 	expireOffset  = 3600
@@ -82,7 +72,7 @@ func AuhtWithToken(rw http.ResponseWriter, r *http.Request, next http.HandlerFun
 
 func SignWithNewToken(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 	auth := initJWTAuthenticationSettings()
-	login, err := getLogin(r.Context().Value(appCtx.LoginData))
+	login, err := getCredentials(r.Context().Value(appCtx.Credentils))
 	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		rw.Write([]byte("no login data provided"))
@@ -184,12 +174,12 @@ func getPublicKey() *rsa.PublicKey {
 	return rsaPub
 }
 
-func getLogin(l interface{}) (*models.User, error) {
-	switch login := l.(type) {
+func getCredentials(i interface{}) (*models.User, error) {
+	switch c := i.(type) {
 	case models.User:
-		login = models.User(login)
-		return &login, nil
+		c = models.User(c)
+		return &c, nil
 	default:
-		return nil, errors.New("no login data provided")
+		return nil, errors.New("no c data provided")
 	}
 }

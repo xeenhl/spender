@@ -16,6 +16,8 @@ type Amount struct {
 
 type User struct {
 	ID int32
+	Verified bool
+	Credentials
 }
 
 type Spend struct {

@@ -6,24 +6,30 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/xeenhl/spender/backend/authentication"
 	appCtx "github.com/xeenhl/spender/backend/context"
+	"github.com/xeenhl/spender/backend/models"
 )
 
 func (env *Env) SignIn(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 
-	var userSignIn authentication.Signin
-	decodeError := json.NewDecoder(r.Body).Decode(&userSignIn)
+	var creds models.Credentials
+	decodeError := json.NewDecoder(r.Body).Decode(&creds)
 
 	if decodeError != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	pass := base64.StdEncoding.EncodeToString([]byte(userSignIn.Password))
-	userSignIn.Password = pass
+	pass := base64.StdEncoding.EncodeToString([]byte(creds.Password))
+	creds.Password = pass
+
+
 
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, appCtx.SigninData, *userSignIn)
+	ctx = context.WithValue(ctx, appCtx.Credentils, creds)
 
 	next(rw, r.WithContext(ctx))
+}
+
+func sendVerificationEmail(signin models.Credentials) {
+
 }
