@@ -33,6 +33,5 @@ func sendVerificationEmail(signin models.Credentials) {
 }
 
 func (env *Env) addNewUser(creds *models.Credentials) {
-	db := env.DB
 
 }
