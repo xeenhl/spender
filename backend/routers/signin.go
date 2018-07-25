@@ -22,8 +22,6 @@ func (env *Env) SignIn(rw http.ResponseWriter, r *http.Request, next http.Handle
 	pass := base64.StdEncoding.EncodeToString([]byte(creds.Password))
 	creds.Password = pass
 
-
-
 	ctx := r.Context()
 	ctx = context.WithValue(ctx, appCtx.Credentils, creds)
 
@@ -31,5 +29,10 @@ func (env *Env) SignIn(rw http.ResponseWriter, r *http.Request, next http.Handle
 }
 
 func sendVerificationEmail(signin models.Credentials) {
+	//TODO send verification email
+}
+
+func (env *Env) addNewUser(creds *models.Credentials) {
+	db := env.DB
 
 }

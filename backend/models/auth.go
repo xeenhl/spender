@@ -1,8 +1,8 @@
 package models
 
 import (
-	"fmt"
 	"errors"
+	"fmt"
 )
 
 type Credentials struct {
@@ -37,9 +37,9 @@ func (db *DB) GetUserByEmail(email string) (*User, error) {
 	return &User{}, errors.New("No user found by email")
 }
 
-func (db *DB) AddNewUser(user *User) (*User, error) {
+func (db *DB) AddNewUser(creds Credentials) (*User, error) {
 
-	query := fmt.Sprintf(`INSERT INTO Spends (Email, Verified, Password) VALUES (%#v, %#v, %#v)`, user.Email, user.Verified, user.Password)
+	query := fmt.Sprintf(`INSERT INTO User (Email, Verified, Password) VALUES (%#v, %#v, %#v)`, creds.Email, false, creds.Password)
 
 	rows, err := db.Query(query)
 	defer rows.Close()
@@ -51,7 +51,7 @@ func (db *DB) AddNewUser(user *User) (*User, error) {
 	if rows.Next() {
 		u := new(User)
 
-		err := rows.Scan(&u.ID, &u.Verified)
+		err := rows.Scan(&u.ID, &u.Verified, &u.Email, &u.Password)
 
 		if err != nil {
 			return nil, err
@@ -60,5 +60,5 @@ func (db *DB) AddNewUser(user *User) (*User, error) {
 		return u, nil
 	}
 
-	return nil, errors.New("No spend found by ID for Update")
+	return nil, errors.New("No User has been added")
 }

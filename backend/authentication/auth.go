@@ -72,14 +72,14 @@ func AuhtWithToken(rw http.ResponseWriter, r *http.Request, next http.HandlerFun
 
 func SignWithNewToken(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 	auth := initJWTAuthenticationSettings()
-	login, err := getCredentials(r.Context().Value(appCtx.Credentils))
+	user, err := getCredentials(r.Context().Value(appCtx.Credentils))
 	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
-		rw.Write([]byte("no login data provided"))
+		rw.Write([]byte("no user data provided"))
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodPS512, jwt.MapClaims{
-		"sub": login.ID,
+		"sub": user.ID,
 		"iat": time.Now().Unix(),
 		"exp": time.Now().Add(time.Hour * time.Duration(tokenDuration)).Unix(),
 	})
