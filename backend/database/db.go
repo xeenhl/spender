@@ -1,21 +1,27 @@
-package models
+package database
 
 import (
 	"context"
 	"database/sql"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/xeenhl/spender/backend/models"
 )
 
 type SpendDatastore interface {
-	GetAllSpends(ctx context.Context) ([]*Spend, error)
-	GetSpendById(id int, ctx context.Context) (*Spend, error)
-	AddSpend(newData Spend, ctx context.Context) (*Spend, error)
-	GetUserByEmail(email string) (*User, error)
+	GetAllSpends(ctx context.Context) ([]*models.Spend, error)
+	GetSpendById(id int, ctx context.Context) (*models.Spend, error)
+	AddSpend(newData models.Spend, ctx context.Context) (*models.Spend, error)
+}
+
+type UserDatastore interface {
+	GetUserByEmail(email string) (*models.User, error)
+	AddNewUser(creds *models.Credentials) (*models.User, error)
 }
 
 type Datastore interface {
 	SpendDatastore
+	UserDatastore
 }
 
 type DB struct {

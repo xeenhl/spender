@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/xeenhl/spender/backend/database"
 	"github.com/xeenhl/spender/backend/env"
-	"github.com/xeenhl/spender/backend/models"
 	"github.com/xeenhl/spender/backend/routers"
 
 	"github.com/urfave/negroni"
@@ -15,7 +15,7 @@ import (
 
 func main() {
 
-	db, err := models.InitDB()
+	db, err := database.InitDB()
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(2)

@@ -1,9 +1,7 @@
 package env
 
-import "github.com/xeenhl/spender/backend/models"
+import "github.com/xeenhl/spender/backend/database"
 
 type Env struct {
-	DB models.Datastore
+	DB database.Datastore
 }
-
-
